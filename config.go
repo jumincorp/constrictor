@@ -3,6 +3,7 @@ package constrictor
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -33,7 +34,7 @@ func readConfig() {
 	viper.AddConfigPath(fmt.Sprintf("/etc/"))
 	viper.AddConfigPath(fmt.Sprintf("."))
 
-	viper.SetEnvPrefix(programName)
+	viper.SetEnvPrefix(strings.Replace(programName, "-", "_", -1))
 	viper.AutomaticEnv()
 
 	err := viper.ReadInConfig()
