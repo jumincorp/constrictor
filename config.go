@@ -1,3 +1,7 @@
+// Package constrictor lightly wraps around cobra and viper.
+// It is meant to help you write a simple one-command app which
+// could use either command-line parameters or a configuration
+// file or a combination of both.
 package constrictor
 
 import (
