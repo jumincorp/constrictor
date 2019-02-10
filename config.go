@@ -15,18 +15,25 @@ var (
 	programName string
 )
 
-func App(name string, shortDesc string, longDesc string) error {
+func App(name string, shortDesc string, longDesc string, run func([]string)) *cobra.Command {
 	app.Use = name
 	app.Short = shortDesc
 	app.Long = longDesc
 	app.Run = func(cmd *cobra.Command, args []string) {
+		fmt.Printf("args %v\n", args)
+		run(args)
 		// Do nothing except evaluate variables
 	}
+	//app.RunE = func(cmd *cobra.Command, args []string) error {
+	//fmt.Printf("E args %v\n", args)
+	//return nil
+	//// Do nothing except evaluate variables
+	//}
 
 	programName = name
 
 	cobra.OnInitialize(readConfig)
-	return app.Execute()
+	return app
 }
 
 func readConfig() {
