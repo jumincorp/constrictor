@@ -2,6 +2,7 @@ package constrictor
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -15,20 +16,15 @@ var (
 	programName string
 )
 
-func App(name string, shortDesc string, longDesc string, run func([]string)) *cobra.Command {
+// App returns a simple one-command application that combines cobra and viper configuration
+func App(name string, shortDesc string, longDesc string, run func([]string) error) *cobra.Command {
 	app.Use = name
 	app.Short = shortDesc
 	app.Long = longDesc
-	app.Run = func(cmd *cobra.Command, args []string) {
-		fmt.Printf("args %v\n", args)
-		run(args)
-		// Do nothing except evaluate variables
+
+	app.RunE = func(cmd *cobra.Command, args []string) error {
+		return run(args)
 	}
-	//app.RunE = func(cmd *cobra.Command, args []string) error {
-	//fmt.Printf("E args %v\n", args)
-	//return nil
-	//// Do nothing except evaluate variables
-	//}
 
 	programName = name
 
@@ -46,10 +42,11 @@ func readConfig() {
 
 	err := viper.ReadInConfig()
 	if err != nil { // Handle errors reading the config file
-		fmt.Printf("error reading config file: %s", err)
+		log.Printf("error reading config file: %s", err)
 	}
 }
 
+// StringVar returns a function that can be called to evaluate that string configuration parameter.
 func StringVar(name string, shortName string, defaultVal string, desc string) func() string {
 	app.PersistentFlags().StringP(name, shortName, defaultVal, desc)
 	viper.BindPFlag(name, app.PersistentFlags().Lookup(name))
@@ -59,6 +56,9 @@ func StringVar(name string, shortName string, defaultVal string, desc string) fu
 	}
 }
 
+// AddressPortVar returns a function that can be called to evaluate that Address/Port parameter.
+// An Address/Port can be stated as a string containing both values, such as "localhost:80"
+// The same address could also be configured using only a port string (":80") or even just a port number (80).
 func AddressPortVar(name string, shortName string, defaultVal string, desc string) func() string {
 	app.PersistentFlags().StringP(name, shortName, defaultVal, desc)
 	viper.BindPFlag(name, app.PersistentFlags().Lookup(name))
@@ -72,6 +72,10 @@ func AddressPortVar(name string, shortName string, defaultVal string, desc strin
 	}
 }
 
+// TimeDurationVar returns a function that can be called to evaluate an time duration parameter.
+// A Time duration can be configured using a valid Go time duration such as "1m11s" but whereas Go
+// would assume a string without suffix such as "42" to mean 42 nanoseconds, constrictor defaults to
+// seconds and would this interpret it as 42 seconds.
 func TimeDurationVar(name string, shortName string, defaultVal string, desc string) func() time.Duration {
 	app.PersistentFlags().StringP(name, shortName, defaultVal, desc)
 	viper.BindPFlag(name, app.PersistentFlags().Lookup(name))
