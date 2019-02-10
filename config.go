@@ -6,7 +6,6 @@ package constrictor
 
 import (
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -27,16 +26,23 @@ func App(name string, shortDesc string, longDesc string, run func([]string) erro
 	app.Long = longDesc
 
 	app.RunE = func(cmd *cobra.Command, args []string) error {
+		if err := readConfig(); err != nil {
+			switch err.(type) {
+			case viper.ConfigFileNotFoundError:
+				// Silently ignore this.
+			default:
+				return err
+			}
+		}
 		return run(args)
 	}
 
 	programName = name
 
-	cobra.OnInitialize(readConfig)
 	return app
 }
 
-func readConfig() {
+func readConfig() error {
 	viper.SetConfigName(programName)
 	viper.AddConfigPath(fmt.Sprintf("/etc/"))
 	viper.AddConfigPath(fmt.Sprintf("."))
@@ -44,10 +50,7 @@ func readConfig() {
 	viper.SetEnvPrefix(strings.Replace(programName, "-", "_", -1))
 	viper.AutomaticEnv()
 
-	err := viper.ReadInConfig()
-	if err != nil { // Handle errors reading the config file
-		log.Printf("error reading config file: %s", err)
-	}
+	return viper.ReadInConfig()
 }
 
 // StringVar returns a function that can be called to evaluate that string configuration parameter.
