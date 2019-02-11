@@ -14,13 +14,20 @@ import (
 	"github.com/spf13/viper"
 )
 
+// App is a simple one-command application that combines cobra and viper configuration
+type App struct {
+	cobra.Command
+	programName string
+}
+
 var (
 	app         = &cobra.Command{}
 	programName string
 )
 
-// App returns a simple one-command application that combines cobra and viper configuration
-func App(name string, shortDesc string, longDesc string, run func([]string) error) *cobra.Command {
+// NewApp returns a new simple application
+func NewApp(name string, shortDesc string, longDesc string, run func([]string) error) *App {
+	app := new(App)
 	app.Use = name
 	app.Short = shortDesc
 	app.Long = longDesc
