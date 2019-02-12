@@ -21,17 +21,14 @@ type App struct {
 }
 
 var (
-	app         = &cobra.Command{}
-	programName string
+	app = new(App)
 )
 
 // NewApp returns a new simple application
 func NewApp(name string, shortDesc string, longDesc string, run func([]string) error) *App {
-	app := new(App)
 	app.Use = name
 	app.Short = shortDesc
 	app.Long = longDesc
-
 	app.RunE = func(cmd *cobra.Command, args []string) error {
 		if err := readConfig(); err != nil {
 			switch err.(type) {
@@ -44,17 +41,17 @@ func NewApp(name string, shortDesc string, longDesc string, run func([]string) e
 		return run(args)
 	}
 
-	programName = name
+	app.programName = name
 
 	return app
 }
 
 func readConfig() error {
-	viper.SetConfigName(programName)
+	viper.SetConfigName(app.programName)
 	viper.AddConfigPath(fmt.Sprintf("/etc/"))
 	viper.AddConfigPath(fmt.Sprintf("."))
 
-	viper.SetEnvPrefix(strings.Replace(programName, "-", "_", -1))
+	viper.SetEnvPrefix(strings.Replace(app.programName, "-", "_", -1))
 	viper.AutomaticEnv()
 
 	return viper.ReadInConfig()
